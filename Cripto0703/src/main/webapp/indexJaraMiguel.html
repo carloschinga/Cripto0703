@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Inicio de Sesión</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <style>
+            .login-container {
+                max-width: 400px;
+                margin: 0 auto;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            .login-form {
+                margin-bottom: 20px;
+            }
+            .google-login {
+                text-align: center;
+                margin-top: 20px;
+            }
+            input, button {
+                width: 100%;
+                padding: 10px;
+                margin: 8px 0;
+                box-sizing: border-box;
+            }
+            .divider {
+                text-align: center;
+                margin: 20px 0;
+                position: relative;
+            }
+            .divider::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: #ddd;
+                z-index: -1;
+            }
+            .divider span {
+                background: white;
+                padding: 0 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="login-container">
+            <!-- Formulario Tradicional -->
+            <div class="login-form">
+                <h2>INICIO DE SESIÓN 🌍</h2>
+                <form onsubmit="return false;">
+                    <label>Usuario:</label>
+                    <input type="text" id="user" required>
+                    
+                    <label>Contraseña:</label>
+                    <input type="password" id="pass" required>
+                    
+                    <button id="btnIniciar">Iniciar Sesión</button>
+                </form>
+            </div>
+
+            <!-- Separador -->
+            <div class="divider">
+                <span>O</span>
+            </div>
+
+            <!-- Login con Google -->
+            <div class="google-login">
+                <h3>Iniciar con Google</h3>
+                <div id="g_id_onload"
+                     data-client_id="437492465701-vrv2rst7vvoku44hfvcf44lipve3bii8.apps.googleusercontent.com"
+                     data-context="signin"
+                     data-ux_mode="popup"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-shape="rectangular"
+                     data-logo_alignment="left">
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Función para el login tradicional
+            document.getElementById("btnIniciar").addEventListener("click", function() {
+                let user = document.getElementById("user").value;
+                let pass = document.getElementById("pass").value;
+
+                let url = `logueousuario?user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`;
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.resultado === "ok") {
+                            setCookie("token", data.token, 7);
+                            window.location.href = "clientes.html";
+                        } else {
+                            alert("Usuario o contraseña incorrectos");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        alert("Error al conectar con el servidor");
+                    });
+            });
+
+            // Función para el login con Google
+            function handleCredentialResponse(response) {
+                fetch('http://localhost:8080/Cripto06ok/googleauthservletjara', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({token: response.credential})
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        setCookie("token", data.jwt, 7);
+                        window.location.href = "clientes.html";
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error con Google Sign-In:", error);
+                    alert("Error al autenticar con Google");
+                });
+            }
+
+            // Función común para cookies
+            function setCookie(nombre, valor, dias) {
+                const fecha = new Date();
+                fecha.setTime(fecha.getTime() + (dias * 24 * 60 * 60 * 1000));
+                const expira = "expires=" + fecha.toUTCString();
+                document.cookie = nombre + "=" + valor + ";" + expira + ";path=/;SameSite=Lax";
+            }
+        </script>
+    </body>
+</html>

@@ -139,5 +139,20 @@ public class UsuarioJpaController implements Serializable {
             em.close();
         }
     }
-    
+ 
+    public boolean validar(String u, String p) {
+        EntityManager em = getEntityManager();
+        try {
+            Query q = em.createNamedQuery("Usuario.validar");
+            q.setParameter("logiUsua", u);
+            q.setParameter("passUsua", p);
+            List<Usuario> lista = q.getResultList();
+            if (lista.size()!=0) {
+                return true;
+            }
+            return false;
+        } finally {
+            em.close();
+        }
+    }
 }
