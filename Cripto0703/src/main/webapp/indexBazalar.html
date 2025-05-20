@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Iniciar Sesión</title>
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- Tipografía moderna -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 36px 32px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            font-size: 22px;
+            margin-bottom: 24px;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #444;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #005ec2;
+        }
+
+        .divider {
+            margin: 28px 0;
+            text-align: center;
+            color: #aaa;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .g_id_signin {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Iniciar Sesión</h2>
+
+        <form onsubmit="return false;">
+            <label for="user">Usuario</label>
+            <input type="text" id="user" required />
+
+            <label for="pass">Contraseña</label>
+            <input type="password" id="pass" required />
+
+            <button id="btnIniciar">Iniciar sesión</button>
+        </form>
+
+        <div class="divider">ó</div>
+
+        <!-- Google Sign-In -->
+        <div id="g_id_onload"
+             data-client_id="292390968005-lih4qij2b7ull49dm0si62rqr0qff7s6.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-theme="outline"
+             data-size="large">
+        </div>
+    </div>
+
+    <script>
+        function setCookie(nombre, valor, dias) {
+            const fecha = new Date();
+            fecha.setTime(fecha.getTime() + (dias * 24 * 60 * 60 * 1000));
+            document.cookie = `${nombre}=${valor}; expires=${fecha.toUTCString()}; path=/`;
+        }
+
+        document.getElementById("btnIniciar").addEventListener("click", function () {
+            const user = document.getElementById("user").value;
+            const pass = document.getElementById("pass").value;
+
+            const url = `logueousuario?user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.resultado === "ok") {
+                        setCookie("token", data.token, 7);
+                        window.location.href = "clientes.html";
+                    } else {
+                        alert("Usuario o contraseña incorrectos");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al iniciar sesión:", error);
+                    alert("Error de conexión");
+                });
+        });
+
+        function handleCredentialResponse(response) {
+            const id_token = response.credential;
+            fetch('logueogoogle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_token })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.resultado === 'ok') {
+                    setCookie("token", data.token, 7);
+                    window.location.href = "clientes.html";
+                } else {
+                    alert('Error en login con Google');
+                }
+            })
+            .catch(err => {
+                console.error('Error con Google Login:', err);
+                alert('No se pudo iniciar sesión con Google');
+            });
+        }
+    </script>
+</body>
+</html>
