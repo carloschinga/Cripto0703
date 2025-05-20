@@ -36,10 +36,14 @@ public class ClienteListarServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String token = request.getParameter("token");
-        boolean b = JwtUtil.validarToken(token);
+         String tokeng = request.getParameter("tokeng");
+
+        boolean b = token != null && utils.JwtUtil.validarToken(token);
+        boolean a = tokeng != null && utils.TokenGogle.verifyToken(tokeng);
+
         EntityManager em = emf.createEntityManager();
 
-        if (b) {
+        if (a || b) {
             List<Cliente> clientes = em.createNamedQuery("Cliente.findAll", Cliente.class).getResultList();
             JSONArray jsonArray = new JSONArray();
             for (Cliente c : clientes) {
